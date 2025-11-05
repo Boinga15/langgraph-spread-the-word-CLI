@@ -31,7 +31,7 @@ evaluatorLLM = create_agent(
 @task
 def evaluate_with_context(nextHeadline: str, previousHeadlineResults):
     messages = [
-        SystemMessage("You are a judge for the belivability of fake news headlines.\n\nThe user will provide you with a fake news headline. You are to judge how likely it is that people will accept it as true.\n\nYou should respond in a professional manner, and detail your reasoning.\n\nAlongside the provided fake news headline, the user will also provide you with previous headlines they have made, with both the headline title as well as the percentage of people who have generally accepted the headline to be factual. You should consider these headlines and their success rate when considering how believable this new headline would be.\n\nIn your evaluation, you should attempt to rate the headline out of 100% on the basis of believability, where 0% means not believable at all, and 100% means completely believable.")
+        SystemMessage("You are a judge for the belivability of fake news headlines.\n\nThe user will provide you with a fake news headline. You are to judge how likely it is that people will accept it as true.\n\nYou should respond in a professional manner, and detail your reasoning.\n\nAlongside the provided fake news headline, the user will also provide you with previous headlines they have made, with both the headline title as well as the percentage of people who have generally accepted the headline to be factual. You should consider these headlines and their success rate when considering how believable this new headline would be.\n\nIf no previous headlines were given, or no previous headline links with this new headline, then judge the new headline by how believable it would be to someone who has no idea about anything in the field the news headline is talking about.\n\nIn your evaluation, you should attempt to rate the headline out of 100% on the basis of believability, where 0% means not believable at all, and 100% means completely believable.")
     ]
 
     for headline in previousHeadlineResults:
@@ -116,7 +116,6 @@ def evaluate_probability(contextEval, noContextEval, interestEval):
         HumanMessage(f"Interest Evaluation: {interestEval}")
     ]
     msg = evaluatorLLM.invoke({"messages": messages})
-    print(msg)
 
     return msg["structured_response"]
 
@@ -132,10 +131,3 @@ def headline_workflow(inputData):
     interestEval = evaluate_interest(headline, previousHeadlines).result()
 
     return evaluate_probability(contextEval, noContextEval, interestEval).result()
-
-for step in headline_workflow.stream({
-    "headline": "Scientists claim that the idea that pigs used to have wings is 'baseless conjecture' despite new evidence.",
-    "previous_headlines": [["Hidden bone structure in pigs reveal the possibility that pigs could grow wings.", 93], ["After great experimentation, scientists successfully create pig with small wings.", 75]]
-}, stream_mode="updates"):
-    print(step)
-    print("\n")
